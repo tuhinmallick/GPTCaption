@@ -19,14 +19,12 @@ openai.api_key = get_credentials()
 
 # Function to read plain URLs from text area
 def extract_image_urls(raw_text):
-    urls = [line.strip() for line in raw_text.splitlines() if line.strip()]
-    return urls
+    return [line.strip() for line in raw_text.splitlines() if line.strip()]
 
 # Function to configure and get the OpenAI client
 def get_openai_client():
     api_key = get_credentials()
-    client = OpenAI(api_key=api_key)
-    return client
+    return OpenAI(api_key=api_key)
 
 def analyze_image(image_url):
     client = get_openai_client()
@@ -104,12 +102,10 @@ def generate_captions():
     # Calculate the estimated cost including token-based costs
     cost = estimate_cost(len(image_urls), instruction_text, image_urls)
 
-    # Ask the user if they want to proceed with the estimated cost
-    proceed = messagebox.askyesno(
+    if proceed := messagebox.askyesno(
         "Estimated Cost",
-        f"The estimated cost for analyzing (assuming each image is 1024x1024 and you did not enter a crazy instruction){len(image_urls)} images is ${cost:.2f}. Do you want to continue?"
-    )
-    if proceed:
+        f"The estimated cost for analyzing (assuming each image is 1024x1024 and you did not enter a crazy instruction){len(image_urls)} images is ${cost:.2f}. Do you want to continue?",
+    ):
         print(f"Starting the caption generation process for {len(image_urls)} images.")  # 
         # Update the UI to indicate processing
         generate_button.config(text="Processing...", state="disabled")
@@ -169,9 +165,11 @@ def estimate_cost(number_of_images, instruction_text, image_urls):
     total_input_token_cost = (total_input_tokens / 1000) * cost_per_1K_input_tokens
     total_output_token_cost = (total_output_tokens / 1000) * cost_per_1K_output_tokens
 
-    # Sum up all costs
-    total_cost = total_vision_processing_cost + total_input_token_cost + total_output_token_cost
-    return total_cost
+    return (
+        total_vision_processing_cost
+        + total_input_token_cost
+        + total_output_token_cost
+    )
 
 # Ensure that the generate_button is created in the global scope so that it can be accessed in the threaded_process_images function
 generate_button = tk.Button(root, text="Generate Captions", command=generate_captions)
